@@ -22,16 +22,16 @@ jobs:
           git clone --recursive --depth 1 --branch $env:RUSTDESK_BRANCH https://github.com/rustdesk/rustdesk.git src
         shell: pwsh
 
-      - name: Patch config.rs Windows (pwsh quote fixed)
+      - name: Patch config.rs Windows (zero backquote solution)
         run: |
           $fp = "src/libs/hbb_common/src/config.rs"
           $raw = Get-Content $fp -Raw
 
-          $newServerVal = $env:RENDEZVOUS_SERVER
-          $newKeyVal = $env:RS_PUB_KEY
+          $sTemplate = 'pub const RENDEZVOUS_SERVERS: &''static [&''static str] = &["__SV__"];'
+          $kTemplate = 'pub const RS_PUB_KEY: &''static str = "__KEY__";'
 
-          $lineServer = "pub const RENDEZVOUS_SERVERS: &'static [&'static str] = &[``"$newServerVal``"];"
-          $lineKey = "pub const RS_PUB_KEY: &'static str = ``"$newKeyVal``";"
+          $lineServer = $sTemplate.Replace("__SV__", $env:RENDEZVOUS_SERVER)
+          $lineKey = $kTemplate.Replace("__KEY__", $env:RS_PUB_KEY)
 
           $raw = $raw -replace 'pub const RENDEZVOUS_SERVERS: &''static \[&''static str\] = &\[.*?\];', $lineServer
           $raw = $raw -replace 'pub const RS_PUB_KEY: &''static str = ".*?";', $lineKey
