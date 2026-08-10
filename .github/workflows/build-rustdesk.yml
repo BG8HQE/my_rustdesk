@@ -1,4 +1,4 @@
-name: Build Custom RustDesk (Regex safe quote fix)
+name: Build Custom RustDesk
 run-name: Build custom rustdesk self‑host
 
 on:
@@ -22,13 +22,21 @@ jobs:
           git clone --recursive --depth 1 --branch $env:RUSTDESK_BRANCH https://github.com/rustdesk/rustdesk.git src
         shell: pwsh
 
-      - name: Patch config.rs Windows (fixed quote escape)
+      - name: Patch config.rs Windows (pwsh quote fixed)
         run: |
           $fp = "src/libs/hbb_common/src/config.rs"
           $raw = Get-Content $fp -Raw
-          $raw = $raw -replace 'pub const RENDEZVOUS_SERVERS: &''static \[&''static str\] = &\[.*?\];',"pub const RENDEZVOUS_SERVERS: &'static [&'static str] = &[\"$env:RENDEZVOUS_SERVER\"];"
-          $raw = $raw -replace 'pub const RS_PUB_KEY: &''static str = ".*?";',"pub const RS_PUB_KEY: &'static str = `"$env:RS_PUB_KEY`";"
+
+          $newServerVal = $env:RENDEZVOUS_SERVER
+          $newKeyVal = $env:RS_PUB_KEY
+
+          $lineServer = "pub const RENDEZVOUS_SERVERS: &'static [&'static str] = &[``"$newServerVal``"];"
+          $lineKey = "pub const RS_PUB_KEY: &'static str = ``"$newKeyVal``";"
+
+          $raw = $raw -replace 'pub const RENDEZVOUS_SERVERS: &''static \[&''static str\] = &\[.*?\];', $lineServer
+          $raw = $raw -replace 'pub const RS_PUB_KEY: &''static str = ".*?";', $lineKey
           $raw = $raw -replace 'custom_rendezvous_server:\s*false','custom_rendezvous_server: true'
+
           $raw | Out-File $fp -Encoding utf8NoBOM -Newline LF
         shell: pwsh
 
