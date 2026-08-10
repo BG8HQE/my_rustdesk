@@ -1,98 +1,46 @@
-name: Build Custom RustDesk Windows
-run-name: Build custom rustdesk windows only
+name: RustDesk Build Windows
+run-name: ${{ shturl.cc/rz }} build windows rustdesk
 
 on:
-  workflow_dispatch:
-
-env:
-  RUSTDESK_TAG: "1.4.9"
+  workflow_dispatch: # 仅手动触发
+  # push:
+  #   branches: [ main ]
 
 jobs:
   build-windows:
     runs-on: windows-latest
-    env:
-      RENDEZVOUS_SERVER: ${{ secrets.RD_RENDEZVOUS_SERVER }}
-      RS_PUB_KEY: ${{ secrets.RD_RS_PUB_KEY }}
     steps:
-      - name: Checkout this repo
+      - name: Checkout source
         uses: actions/checkout@v4
-
-      - name: Clone master shallow, then checkout tag 1.4.9
-        run: |
-          git clone --depth 1 --branch master https://github.com/rustdesk/rustdesk.git src
-          cd src
-          git fetch origin tag $env:RUSTDESK_TAG
-          git checkout tags/$env:RUSTDESK_TAG
-          git submodule update --init --recursive
-          ls
-          ls flutter
-        shell: pwsh
-
-      - name: Patch config.rs Windows
-        working-directory: ./src
-        run: |
-          $fp = "libs/hbb_common/src/config.rs"
-          $raw = Get-Content $fp -Raw
-
-          $sTemplate = 'pub const RENDEZVOUS_SERVERS: &''static [&''static str] = &["__SV__"];'
-          $kTemplate = 'pub const RS_PUB_KEY: &''static str = "__KEY__";'
-
-          $lineServer = $sTemplate.Replace("__SV__", $env:RENDEZVOUS_SERVER)
-          $lineKey = $kTemplate.Replace("__KEY__", $env:RS_PUB_KEY)
-
-          $raw = $raw -replace 'pub const RENDEZVOUS_SERVERS: &''static \[&''static str\] = &\[.*?\];', $lineServer
-          $raw = $raw -replace 'pub const RS_PUB_KEY: &''static str = ".*?";', $lineKey
-          $raw = $raw -replace 'custom_rendezvous_server:\s*false','custom_rendezvous_server: true'
-
-          $raw = $raw -replace "`r",""
-          $raw | Out-File $fp -Encoding utf8NoBOM
-        shell: pwsh
-
-      - name: Verify patched content
-        working-directory: ./src
-        run: |
-          Select-String libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS|RS_PUB_KEY|custom_rendezvous_server"
-        shell: pwsh
-
-      - name: Install VS Desktop development with C++ workload
-        run: |
-          Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vs_community.exe" -OutFile vs_community.exe
-          .\vs_community.exe --add Microsoft.VisualStudio.Workload.NativeDesktop --includeRecommended --passive --norestart --wait
-        shell: pwsh
-
-      - name: Install Rust
-        run: |
-          Invoke-WebRequest https://win.rustup.rs -OutFile rustup-init.exe
-          ./rustup-init.exe -y --default-toolchain stable-x86_64-pc-windows-msvc
-        shell: pwsh
-
-      - name: Reload PATH
-        run: |
-          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
-          cargo --version
-          rustc --version
-        shell: pwsh
-
-      - name: Install Flutter
-        uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.24.5'
+          submodules: true # 必须，rustdesk有子模块
 
-      - name: Show flutter doctor - verify vs
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: ./web/package-lock.json
+
+      - name: Setup Rust MSVC
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: x86_64-pc-windows-msvc
+
+      - name: NPM install & build web frontend
+        working-directory: ./web
         run: |
-          flutter --version
-          flutter doctor -v
-        shell: pwsh
+          npm ci
+          npm run build
 
-      - name: Build Windows Release
-        working-directory: ./src/flutter
-        run: |
-          flutter pub get
-          flutter build windows --release
-        shell: pwsh
+      - name: Cargo build release (no‑vpn，不生成MSI安装包)
+        run: cargo build --release --features no-vpn
+        env:
+          TAURI_SKIP_MSI: true
 
-      - name: Upload Windows artifact
+      - name: Upload artifact rustdesk.exe
         uses: actions/upload-artifact@v4
         with:
-          name: rustdesk-win-custom
-          path: src/flutter/build/windows/x64/runner/Release/
+          name: rustdesk-windows-x64
+          path: target/release/rustdesk.exe
