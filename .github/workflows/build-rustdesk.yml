@@ -3,8 +3,6 @@ run-name: Build RustDesk Windows
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches: [ main ]
 
 jobs:
   build-windows:
@@ -19,8 +17,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
-          cache-dependency-path: ./web/package-lock.json
+          # 删除cache相关，规避路径解析报错
 
       - name: Setup Rust MSVC
         uses: dtolnay/rust-toolchain@stable
@@ -34,7 +31,7 @@ jobs:
           npm ci
           npm run build
 
-      - name: Cargo build release (no‑vpn，仅exe，不打包MSI)
+      - name: Cargo build release (no‑vpn，仅exe)
         run: cargo build --release --features no-vpn
         env:
           TAURI_SKIP_MSI: true
