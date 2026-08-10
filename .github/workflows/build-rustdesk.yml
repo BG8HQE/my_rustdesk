@@ -47,8 +47,7 @@ jobs:
 
       - name: Verify patched content
         run: |
-          cd src
-          Select-String libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS|RS_PUB_KEY|custom_rendezvous_server"
+          cd src; Select-String libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS|RS_PUB_KEY|custom_rendezvous_server"
         shell: pwsh
 
       - name: Install MSVC Build Tools
@@ -78,11 +77,15 @@ jobs:
           flutter doctor -v
         shell: pwsh
 
+      - name: Debug check src dir files
+        run: |
+          ls src
+          ls src/pubspec.yaml
+        shell: pwsh
+
       - name: Build Windows Release
         run: |
-          cd src
-          flutter pub get
-          flutter build windows --release
+          cd src; flutter pub get; flutter build windows --release
         shell: pwsh
 
       - name: Upload Windows artifact
