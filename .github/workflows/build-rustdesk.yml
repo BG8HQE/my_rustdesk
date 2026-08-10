@@ -26,8 +26,8 @@ jobs:
           $fp = "src/libs/hbb_common/src/config.rs"
           $raw = Get-Content $fp -Raw
           # 原版完整行，从官方master复制
-          $oldServerLine = 'pub const RENDEZVOUS_SERVERS: &''static [&''static str] = &["rustdesk.com"];'
-          $newServerLine = "pub const RENDEZVOUS_SERVERS: &'static [&'static str] = &[\"$env:RENDEZVOUS_SERVER\"];"
+          $oldServerLine = 'pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];'
+          $newServerLine = "pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";"
 
           $oldKeyLine = 'pub const RS_PUB_KEY: &''static str = "**********";'
           $newKeyLine = "pub const RS_PUB_KEY: &'static str = `"$env:RS_PUB_KEY`";"
