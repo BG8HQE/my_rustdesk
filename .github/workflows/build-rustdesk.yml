@@ -11,10 +11,17 @@ jobs:
       RELAY_SERVER: ${{ secrets.RD_RELAY_SERVER }}
       RELAY_KEY: ${{ secrets.RD_RELAY_KEY }}
     steps:
-      - name: Checkout source
+      - name: Checkout full source with submodules
         uses: actions/checkout@v4
         with:
           submodules: true
+          fetch-depth: 0   # 关键！关闭浅克隆，子模块完整拉取
+
+      - name: Debug print directory structure
+        run: |
+          Get-ChildItem
+          if(Test-Path web){ Write‑Host "✅ web folder exists" }else{ Write‑Host "❌ web folder missing" }
+        shell: pwsh
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
