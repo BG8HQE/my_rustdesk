@@ -14,14 +14,18 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          submodules: true
           fetch-depth: 0
 
-      - name: Force init submodules
+      - name: Replace submodule SSH url to HTTPS
+        run: |
+          (Get-Content .gitmodules) -replace 'git@github.com:', 'https://github.com/' | Set-Content .gitmodules
+        shell: pwsh
+
+      - name: Init & update submodules(https)
         run: git submodule update --init --recursive
         shell: pwsh
 
-      - name: List root files
+      - name: List root dir
         run: Get-ChildItem
         shell: pwsh
 
