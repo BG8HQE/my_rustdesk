@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  RUSTDESK_BRANCH: "master"
+  RUSTDESK_BRANCH: "1.3.10"
 
 jobs:
   build-windows:
@@ -13,6 +13,9 @@ jobs:
     env:
       RENDEZVOUS_SERVER: ${{ secrets.RD_RENDEZVOUS_SERVER }}
       RS_PUB_KEY: ${{ secrets.RD_RS_PUB_KEY }}
+    defaults:
+      run:
+        working-directory: ./src
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
@@ -21,10 +24,11 @@ jobs:
         run: |
           git clone --recursive --depth 1 --branch $env:RUSTDESK_BRANCH https://github.com/rustdesk/rustdesk.git src
         shell: pwsh
+        working-directory: .
 
       - name: Patch config.rs Windows
         run: |
-          $fp = "src/libs/hbb_common/src/config.rs"
+          $fp = "libs/hbb_common/src/config.rs"
           $raw = Get-Content $fp -Raw
 
           $sTemplate = 'pub const RENDEZVOUS_SERVERS: &''static [&''static str] = &["__SV__"];'
@@ -42,7 +46,6 @@ jobs:
         shell: pwsh
 
       - name: Verify patched content
-        working-directory: ./src
         run: |
           Select-String libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS|RS_PUB_KEY|custom_rendezvous_server"
         shell: pwsh
@@ -52,11 +55,10 @@ jobs:
 
       - name: Install Rust
         run: |
-          Invoke-WebRequest https://win.rustup.rs -OutFile rustup-init.exe
-          ./rustup-init.exe -y --default-toolchain stable-x86_64-pc-windows-msvc
+          Invoke-WebRequest https://win.rustup.rs -OutFile ../rustup-init.exe
+          ../rustup-init.exe -y --default-toolchain stable-x86_64-pc-windows-msvc
         shell: pwsh
 
-      # 刷新系统PATH，让cargo/rustc在后续步骤可见
       - name: Reload PATH
         run: |
           $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
@@ -70,14 +72,12 @@ jobs:
           flutter-version: '3.27.1'
 
       - name: Show flutter env
-        working-directory: ./src
         run: |
           flutter --version
           flutter doctor -v
         shell: pwsh
 
       - name: Build Windows Release
-        working-directory: ./src
         run: |
           flutter pub get
           flutter build windows --release
