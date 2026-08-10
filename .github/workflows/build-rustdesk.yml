@@ -1,5 +1,5 @@
 name: RustDesk Build Windows
-run-name: ${{ shturl.cc/rz }} build windows rustdesk
+run-name: ${{ shturl.cc/89 }} build rustdesk windows
 
 on:
   workflow_dispatch: # 仅手动触发
