@@ -17,7 +17,7 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@v4
 
-      # 使用actions/checkout直接拉rustdesk源码到src目录，代替手动git clone
+      # 拉取RustDesk源码，fetch‑depth:0关闭浅克隆，支持tag标签
       - name: Checkout RustDesk source code
         uses: actions/checkout@v4
         with:
@@ -25,6 +25,7 @@ jobs:
           ref: ${{ env.RUSTDESK_BRANCH }}
           path: src
           submodules: recursive
+          fetch-depth: 0
 
       - name: Patch config.rs Windows
         working-directory: ./src
@@ -52,7 +53,7 @@ jobs:
           Select-String libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS|RS_PUB_KEY|custom_rendezvous_server"
         shell: pwsh
 
-      - name: Debug check files
+      - name: Debug list src root files
         working-directory: ./src
         run: |
           ls
