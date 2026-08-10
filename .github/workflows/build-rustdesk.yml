@@ -17,17 +17,18 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@v4
 
-      - name: Clone rustdesk source & checkout tag
-        run: |
-          git clone https://github.com/rustdesk/rustdesk.git src
-          cd src
-          git checkout $env:RUSTDESK_BRANCH
-          git submodule update --init --recursive
-        shell: pwsh
+      # 使用actions/checkout直接拉rustdesk源码到src目录，代替手动git clone
+      - name: Checkout RustDesk source code
+        uses: actions/checkout@v4
+        with:
+          repository: rustdesk/rustdesk
+          ref: ${{ env.RUSTDESK_BRANCH }}
+          path: src
+          submodules: recursive
 
       - name: Patch config.rs Windows
+        working-directory: ./src
         run: |
-          cd src
           $fp = "libs/hbb_common/src/config.rs"
           $raw = Get-Content $fp -Raw
 
@@ -46,8 +47,15 @@ jobs:
         shell: pwsh
 
       - name: Verify patched content
+        working-directory: ./src
         run: |
-          cd src; Select-String libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS|RS_PUB_KEY|custom_rendezvous_server"
+          Select-String libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS|RS_PUB_KEY|custom_rendezvous_server"
+        shell: pwsh
+
+      - name: Debug check files
+        working-directory: ./src
+        run: |
+          ls
         shell: pwsh
 
       - name: Install MSVC Build Tools
@@ -77,15 +85,11 @@ jobs:
           flutter doctor -v
         shell: pwsh
 
-      - name: Debug check src dir files
-        run: |
-          ls src
-          ls src/pubspec.yaml
-        shell: pwsh
-
       - name: Build Windows Release
+        working-directory: ./src
         run: |
-          cd src; flutter pub get; flutter build windows --release
+          flutter pub get
+          flutter build windows --release
         shell: pwsh
 
       - name: Upload Windows artifact
