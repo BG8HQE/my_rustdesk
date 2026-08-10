@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  RUSTDESK_BRANCH: "1.3.10"
+  RUSTDESK_BRANCH: "v1.4.9"
 
 jobs:
   build-windows:
@@ -69,7 +69,7 @@ jobs:
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.27.1'
+          flutter-version: '3.22.2'
 
       - name: Show flutter env
         run: |
