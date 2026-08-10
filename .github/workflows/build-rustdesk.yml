@@ -47,8 +47,16 @@ jobs:
           Select-String libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS|RS_PUB_KEY|custom_rendezvous_server"
         shell: pwsh
 
-      - name: Setup Flutter & Rust Windows
-        uses: ./src/.github/actions/setup-flutter-rust-windows
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable-x86_64-pc-windows-msvc
+          override: true
+
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
 
       - name: Build Windows Release
         working-directory: ./src
@@ -62,43 +70,3 @@ jobs:
         with:
           name: rustdesk‑win‑custom
           path: src/build/windows/x64/runner/Release/
-
-  build-linux:
-    runs-on: ubuntu-latest
-    env:
-      RENDEZVOUS_SERVER: ${{ secrets.RD_RENDEZVOUS_SERVER }}
-      RS_PUB_KEY: ${{ secrets.RD_RS_PUB_KEY }}
-    steps:
-      - name: Checkout this repo
-        uses: actions/checkout@v4
-
-      - name: Clone official rustdesk + submodules
-        run: |
-          git clone --recursive --depth 1 --branch ${RUSTDESK_BRANCH} https://github.com/rustdesk/rustdesk.git src
-
-      - name: Patch config.rs Linux
-        run: |
-          FILE="src/libs/hbb_common/src/config.rs"
-          sed -i -E 's|pub const RENDEZVOUS_SERVERS: &'\''static \[&'\''static str\] = &\[.*?\];|pub const RENDEZVOUS_SERVERS: &'\''static [&'\''static str] = &["'"${RENDEZVOUS_SERVER}"'"];|g' "$FILE"
-          sed -i -E 's|pub const RS_PUB_KEY: &'\''static str = ".*?";|pub const RS_PUB_KEY: &'\''static str = "'"${RS_PUB_KEY}"'";|g' "$FILE"
-          sed -i -E 's/(custom_rendezvous_server:\s*)false/\1true/g' "$FILE"
-
-      - name: Verify patched content
-        working-directory: ./src
-        run: |
-          grep -n "RENDEZVOUS_SERVERS\|RS_PUB_KEY\|custom_rendezvous_server" libs/hbb_common/src/config.rs
-
-      - name: Setup Flutter & Rust Linux
-        uses: ./src/.github/actions/setup-flutter-rust-linux
-
-      - name: Build Linux Release
-        working-directory: ./src
-        run: |
-          flutter pub get
-          flutter build linux --release
-
-      - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: rustdesk‑linux‑custom
-          path: src/build/linux/x64/release/bundle/
