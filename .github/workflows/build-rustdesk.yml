@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  RUSTDESK_REF: "6c57829"
+  RUSTDESK_TAG: "1.4.9"
 
 jobs:
   build-windows:
@@ -17,14 +17,15 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@v4
 
-      - name: Checkout RustDesk source code
-        uses: actions/checkout@v4
-        with:
-          repository: rustdesk/rustdesk
-          ref: ${{ env.RUSTDESK_REF }}
-          path: src
-          submodules: recursive
-          fetch-depth: 0
+      - name: Clone master shallow, then checkout tag 1.4.9
+        run: |
+          git clone --depth 1 --branch master https://github.com/rustdesk/rustdesk.git src
+          cd src
+          git fetch origin tag $env:RUSTDESK_TAG
+          git checkout tags/$env:RUSTDESK_TAG
+          git submodule update --init --recursive
+          ls
+        shell: pwsh
 
       - name: Patch config.rs Windows
         working-directory: ./src
@@ -50,12 +51,6 @@ jobs:
         working-directory: ./src
         run: |
           Select-String libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS|RS_PUB_KEY|custom_rendezvous_server"
-        shell: pwsh
-
-      - name: Debug list src root files
-        working-directory: ./src
-        run: |
-          ls
         shell: pwsh
 
       - name: Install MSVC Build Tools
