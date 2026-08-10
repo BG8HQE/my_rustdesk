@@ -7,6 +7,10 @@ on:
 jobs:
   build-windows:
     runs-on: windows-latest
+    env:
+      # 从仓库Secrets读取，编译期注入rustdesk
+      RELAY_SERVER: ${{ secrets.RD_RELAY_SERVER }}
+      RELAY_KEY: ${{ secrets.RD_RELAY_KEY }}
     steps:
       - name: Checkout source
         uses: actions/checkout@v4
@@ -39,10 +43,12 @@ jobs:
           npm ci
           npm run build
 
-      - name: Cargo build release (no‑vpn，仅exe)
+      - name: Cargo build release (内置自建服务器, no‑vpn)
         run: cargo build --release --features no-vpn
         env:
           TAURI_SKIP_MSI: true
+          RELAY_SERVER: ${{ env.RELAY_SERVER }}
+          RELAY_KEY: ${{ env.RELAY_KEY }}
 
       - name: Upload artifact rustdesk.exe
         uses: actions/upload-artifact@v4
