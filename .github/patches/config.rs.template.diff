@@ -8,8 +8,8 @@ index 707bbe0..1c1cac1 100644
  
 -pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
 -pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
-+pub const RENDEZVOUS_SERVERS: &[&str] = &["fin.3cdiy.com"];
-+pub const RS_PUB_KEY: &str = "gVXLu6E0Kbz3Z4DbDtnmP0z9ixGOW4o1CNdgLqvVOzQ=";
++pub const RENDEZVOUS_SERVERS: &[&str] = &["__RD_SERVER__"];
++pub const RS_PUB_KEY: &str = "__RD_PUBKEY__";
  
  pub const RENDEZVOUS_PORT: i32 = 21116;
  pub const RELAY_PORT: i32 = 21117;
