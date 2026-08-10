@@ -1,5 +1,5 @@
-name: Build Custom RustDesk
-run-name: Build custom rustdesk self‑host
+name: Build Custom RustDesk Windows
+run-name: Build custom rustdesk windows only
 
 on:
   workflow_dispatch:
@@ -47,16 +47,19 @@ jobs:
           Select-String libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS|RS_PUB_KEY|custom_rendezvous_server"
         shell: pwsh
 
-      - name: Install Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable-x86_64-pc-windows-msvc
-          override: true
+      - name: Install MSVC Build Tools
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Rust (official script)
+        run: |
+          irm https://win.rustup.rs -useb | iex
+          rustup default stable-x86_64-pc-windows-msvc
+        shell: pwsh
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          flutter-version: '3.22.2'
 
       - name: Build Windows Release
         working-directory: ./src
