@@ -25,6 +25,7 @@ jobs:
           git checkout tags/$env:RUSTDESK_TAG
           git submodule update --init --recursive
           ls
+          ls flutter
         shell: pwsh
 
       - name: Patch config.rs Windows
@@ -80,8 +81,9 @@ jobs:
           flutter doctor -v
         shell: pwsh
 
+      # ⭐重点：编译必须进入 src/flutter，pubspec.yaml在这里
       - name: Build Windows Release
-        working-directory: ./src
+        working-directory: ./src/flutter
         run: |
           flutter pub get
           flutter build windows --release
@@ -91,4 +93,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: rustdesk‑win‑custom
-          path: src/build/windows/x64/runner/Release/
+          path: src/flutter/build/windows/x64/runner/Release/
