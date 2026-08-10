@@ -1,8 +1,8 @@
 name: RustDesk Build Windows
-run-name: ${{ shturl.cc/89 }} build rustdesk windows
+run-name: Build RustDesk Windows
 
 on:
-  workflow_dispatch: # 仅手动触发
+  workflow_dispatch:
   # push:
   #   branches: [ main ]
 
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
         with:
-          submodules: true # 必须，rustdesk有子模块
+          submodules: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -34,7 +34,7 @@ jobs:
           npm ci
           npm run build
 
-      - name: Cargo build release (no‑vpn，不生成MSI安装包)
+      - name: Cargo build release (no‑vpn，仅exe，不打包MSI)
         run: cargo build --release --features no-vpn
         env:
           TAURI_SKIP_MSI: true
