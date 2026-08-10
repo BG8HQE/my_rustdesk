@@ -50,23 +50,37 @@ jobs:
       - name: Install MSVC Build Tools
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install Rust (official script fixed)
+      - name: Install Rust
         run: |
           Invoke-WebRequest https://win.rustup.rs -OutFile rustup-init.exe
           ./rustup-init.exe -y --default-toolchain stable-x86_64-pc-windows-msvc
-          $env:Path += ";$env:USERPROFILE\.cargo\bin"
+        shell: pwsh
+
+      # 刷新系统PATH，让cargo/rustc在后续步骤可见
+      - name: Reload PATH
+        run: |
+          $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+          cargo --version
+          rustc --version
         shell: pwsh
 
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.2'
+          flutter-version: '3.27.1'
+
+      - name: Show flutter env
+        working-directory: ./src
+        run: |
+          flutter --version
+          flutter doctor -v
+        shell: pwsh
 
       - name: Build Windows Release
         working-directory: ./src
         run: |
           flutter pub get
-          flutter windows --release
+          flutter build windows --release
         shell: pwsh
 
       - name: Upload Windows artifact
