@@ -54,8 +54,11 @@ jobs:
           Select-String libs/hbb_common/src/config.rs -Pattern "RENDEZVOUS_SERVERS|RS_PUB_KEY|custom_rendezvous_server"
         shell: pwsh
 
-      - name: Install MSVC Build Tools
-        uses: ilammy/msvc-dev-cmd@v1
+      # 安装VS Windows桌面开发组件，flutter识别Visual Studio实例必备
+      - name: Setup Visual Studio desktop‑development‑c++
+        uses: ilammy/setup-vs@v1
+        with:
+          workload: desktop-development-with-c++
 
       - name: Install Rust
         run: |
@@ -75,13 +78,12 @@ jobs:
         with:
           flutter-version: '3.24.5'
 
-      - name: Show flutter env
+      - name: Show flutter doctor - verify vs
         run: |
           flutter --version
           flutter doctor -v
         shell: pwsh
 
-      # ⭐重点：编译必须进入 src/flutter，pubspec.yaml在这里
       - name: Build Windows Release
         working-directory: ./src/flutter
         run: |
