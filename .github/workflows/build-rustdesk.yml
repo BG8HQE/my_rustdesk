@@ -20,9 +20,12 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@v4
 
-      - name: Clone official rustdesk + submodules
+      - name: Clone rustdesk source & checkout tag
         run: |
-          git clone --recursive --depth 1 --branch $env:RUSTDESK_BRANCH https://github.com/rustdesk/rustdesk.git src
+          git clone https://github.com/rustdesk/rustdesk.git src
+          cd src
+          git checkout $env:RUSTDESK_BRANCH
+          git submodule update --init --recursive
         shell: pwsh
         working-directory: .
 
