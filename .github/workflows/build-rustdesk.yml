@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 env:
-  RUSTDESK_BRANCH: "v1.4.9"
+  RUSTDESK_REF: "6c57829"
 
 jobs:
   build-windows:
@@ -17,12 +17,11 @@ jobs:
       - name: Checkout this repo
         uses: actions/checkout@v4
 
-      # 拉取RustDesk源码，fetch‑depth:0关闭浅克隆，支持tag标签
       - name: Checkout RustDesk source code
         uses: actions/checkout@v4
         with:
           repository: rustdesk/rustdesk
-          ref: ${{ env.RUSTDESK_BRANCH }}
+          ref: ${{ env.RUSTDESK_REF }}
           path: src
           submodules: recursive
           fetch-depth: 0
