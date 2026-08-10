@@ -8,7 +8,6 @@ jobs:
   build-windows:
     runs-on: windows-latest
     env:
-      # 从仓库Secrets读取，编译期注入rustdesk
       RELAY_SERVER: ${{ secrets.RD_RELAY_SERVER }}
       RELAY_KEY: ${{ secrets.RD_RELAY_KEY }}
     steps:
@@ -37,13 +36,14 @@ jobs:
             target/release/deps
           key: ${{ runner.os }}-rustdesk-cargo-${{ hashFiles('**/Cargo.toml','**/Cargo.lock') }}
 
-      - name: NPM install & build web frontend
-        working-directory: web
+      - name: Build web frontend
         run: |
+          cd web
           npm ci
           npm run build
+        shell: pwsh
 
-      - name: Cargo build release (内置自建服务器, no‑vpn)
+      - name: Cargo build release (no‑vpn, inject custom server)
         run: cargo build --release --features no-vpn
         env:
           TAURI_SKIP_MSI: true
